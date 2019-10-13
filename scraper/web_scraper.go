@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"strings"
 
+
 	"github.com/gocolly/colly"
+	log "github.com/sirupsen/logrus"
 )
 
 const rootUrl string = "http://dd.weatheroffice.ec.gc.ca/climate/observations/daily/csv/"
@@ -51,11 +53,11 @@ func Scrape(province string) {
 	})
 
 	c.OnError(func(r *colly.Response, err error) {
-		fmt.Println("Request URL:", r.Request.URL, "failed with response:", r, "\nError:", err)
+		log.Errorln("Request URL:", r.Request.URL, "failed with response:", r, "\nError:", err)
 	})
 
 	err := c.Visit(rootUrl + province + "/")
 	if err != nil {
-		fmt.Println("Failed to visit:", rootUrl, "with error:", err.Error())
+		log.Errorln("Failed to visit:", rootUrl, "with error:", err.Error())
 	}
 }
