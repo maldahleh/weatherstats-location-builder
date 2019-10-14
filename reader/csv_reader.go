@@ -28,7 +28,7 @@ func RetrieveStationName(path string) string {
 			continue
 		}
 
-		return split[1][1:len(split[1]) - 1]
+		return split[1][1 : len(split[1]) - 1]
 	}
 
 	if err := scanner.Err(); err != nil {

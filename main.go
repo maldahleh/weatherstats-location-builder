@@ -1,14 +1,50 @@
 package main
 
 import (
-	"fmt"
+	"encoding/json"
+	"net/http"
+	"sync"
+	"time"
 
 	"weatherstatsLocations/scraper"
+
+	log "github.com/sirupsen/logrus"
 )
 
-func main() {
-	m := scraper.ScrapeProvinces()
-	for k, v := range m {
-		fmt.Printf("key[%s] value[%s]\n", k, v)
+var mu sync.RWMutex
+var resp []byte
+
+func allStations(w http.ResponseWriter, r *http.Request) {
+	mu.RLock()
+	b := resp
+	mu.RUnlock()
+
+	_, err := w.Write(b)
+	if err != nil {
+		log.Error("HTTP Write Failure", err)
 	}
+}
+
+func handleRequests() {
+	http.HandleFunc("/stations", allStations)
+	if err := http.ListenAndServe(":8080", nil); err != nil {
+		log.Fatal("Unable to start web server", err)
+	}
+}
+
+func main() {
+	provinceData := scraper.ScrapeProvinces()
+	resp, _ = json.Marshal(provinceData)
+
+	go func() {
+		for {
+			time.Sleep(time.Second * 1000)
+			mu.Lock()
+			provinceData = scraper.ScrapeProvinces()
+			resp, _ = json.Marshal(provinceData)
+			mu.Unlock()
+		}
+	}()
+
+	handleRequests()
 }

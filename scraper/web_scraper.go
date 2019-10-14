@@ -16,7 +16,8 @@ import (
 )
 
 const rootUrl string = "http://dd.weatheroffice.ec.gc.ca/climate/observations/daily/csv/"
-var provinces = [...]string {
+
+var provinces = [...]string{
 	"AB",
 	"BC",
 	"MB",
@@ -70,7 +71,7 @@ func scrape(province string) climateStations {
 		IdleConnTimeout:       90 * time.Second,
 		TLSHandshakeTimeout:   10 * time.Second,
 		ExpectContinueTimeout: 1 * time.Second,
-		ResponseHeaderTimeout: 90 * time.Second,
+		ResponseHeaderTimeout: 120 * time.Second,
 	})
 
 	c.OnHTML("a[href]", func(e *colly.HTMLElement) {
@@ -99,7 +100,7 @@ func scrape(province string) climateStations {
 		if station == nil {
 			station = cs.NewClimateStation()
 
-			err := downloader.DownloadFile(path, rootUrl + province + "/" + path)
+			err := downloader.DownloadFile(path, rootUrl+province+"/"+path)
 			if err != nil {
 				station.Name = "N/A"
 			} else {

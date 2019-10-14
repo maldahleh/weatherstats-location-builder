@@ -1,13 +1,13 @@
 package station
 
 type ClimateStation struct {
-	Name string
-	AvailableData map[string][]string
+	Name          string              `json:"name"`
+	AvailableData map[string][]string `json:"availableData"`
 }
 
 func NewClimateStation() *ClimateStation {
 	return &ClimateStation{
-		Name: "",
+		Name:          "",
 		AvailableData: make(map[string][]string),
 	}
 }
