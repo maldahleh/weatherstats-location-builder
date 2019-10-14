@@ -33,7 +33,7 @@ func Scrape(province string) {
 			"www.dd.weatheroffice.ec.gc.ca",
 		),
 		colly.AllowURLRevisit(),
-		colly.CacheDir("./eccc_cache"),
+		colly.Async(true),
 		colly.MaxDepth(1),
 		colly.UserAgent("Mozilla/5.0"),
 	)
@@ -49,7 +49,20 @@ func Scrape(province string) {
 			return
 		}
 
-		fmt.Println(split)
+		stationId := split[3]
+
+		timestamp := split[4]
+		timestampSplit := strings.Split(timestamp, "-")
+		if len(timestampSplit) != 2 {
+			return
+		}
+
+		month := timestampSplit[1]
+		year := timestampSplit[0]
+
+		fmt.Println(stationId)
+		fmt.Println(month)
+		fmt.Println(year)
 	})
 
 	c.OnError(func(r *colly.Response, err error) {
@@ -60,4 +73,6 @@ func Scrape(province string) {
 	if err != nil {
 		log.Errorln("Failed to visit:", rootUrl, "with error:", err.Error())
 	}
+
+	c.Wait()
 }
