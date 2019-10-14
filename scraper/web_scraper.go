@@ -1,11 +1,15 @@
 package scraper
 
 import (
+	"os"
 	"strings"
+
+	"weatherstatsLocations/downloader"
+	"weatherstatsLocations/reader"
+	cs "weatherstatsLocations/scraper/station"
 
 	"github.com/gocolly/colly"
 	log "github.com/sirupsen/logrus"
-	cs "weatherstatsLocations/scraper/station"
 )
 
 const rootUrl string = "http://dd.weatheroffice.ec.gc.ca/climate/observations/daily/csv/"
@@ -64,6 +68,18 @@ func Scrape(province string) map[string]*cs.ClimateStation {
 		station := climateData[stationId]
 		if station == nil {
 			station = cs.NewClimateStation()
+
+			err := downloader.DownloadFile(path, rootUrl + province + "/" + path)
+			if err != nil {
+				station.Name = "N/A"
+			} else {
+				station.Name = reader.RetrieveStationName(path)
+
+				fileError := os.Remove(path)
+				if fileError != nil {
+					log.Errorln("Failed to delete:", path, "\nError:", fileError)
+				}
+			}
 		}
 
 		availableData := station.AvailableData
