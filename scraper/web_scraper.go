@@ -100,7 +100,7 @@ func scrape(province string) climateStations {
 		if station == nil {
 			station = cs.NewClimateStation()
 
-			err := downloader.DownloadFile(path, rootUrl+province+"/"+path)
+			err := downloader.DownloadFile(path, rootUrl + province + "/" + path)
 			if err != nil {
 				station.Name = "N/A"
 			} else {
