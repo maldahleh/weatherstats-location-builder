@@ -1,12 +1,11 @@
 package scraper
 
 import (
-	"fmt"
 	"strings"
-
 
 	"github.com/gocolly/colly"
 	log "github.com/sirupsen/logrus"
+	cs "weatherstatsLocations/scraper/station"
 )
 
 const rootUrl string = "http://dd.weatheroffice.ec.gc.ca/climate/observations/daily/csv/"
@@ -26,7 +25,9 @@ var provinces = [...]string {
 	"YT",
 }
 
-func Scrape(province string) {
+func Scrape(province string) map[string]*cs.ClimateStation {
+	climateData := make(map[string]*cs.ClimateStation)
+
 	c := colly.NewCollector(
 		colly.AllowedDomains(
 			"dd.weatheroffice.ec.gc.ca",
@@ -34,7 +35,7 @@ func Scrape(province string) {
 		),
 		colly.AllowURLRevisit(),
 		colly.Async(true),
-		colly.MaxDepth(1),
+		colly.MaxDepth(0),
 		colly.UserAgent("Mozilla/5.0"),
 	)
 
@@ -60,9 +61,21 @@ func Scrape(province string) {
 		month := timestampSplit[1]
 		year := timestampSplit[0]
 
-		fmt.Println(stationId)
-		fmt.Println(month)
-		fmt.Println(year)
+		station := climateData[stationId]
+		if station == nil {
+			station = cs.NewClimateStation()
+		}
+
+		availableData := station.AvailableData
+		yearData := availableData[year]
+		if yearData == nil {
+			yearData = []string{}
+		}
+
+		yearData = append(yearData, month)
+		availableData[year] = yearData
+
+		climateData[stationId] = station
 	})
 
 	c.OnError(func(r *colly.Response, err error) {
@@ -75,4 +88,5 @@ func Scrape(province string) {
 	}
 
 	c.Wait()
+	return climateData
 }
