@@ -1,8 +1,11 @@
 package scraper
 
 import (
+	"net"
+	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"weatherstatsLocations/downloader"
 	"weatherstatsLocations/reader"
@@ -29,8 +32,20 @@ var provinces = [...]string {
 	"YT",
 }
 
-func Scrape(province string) map[string]*cs.ClimateStation {
-	climateData := make(map[string]*cs.ClimateStation)
+type climateStations map[string]*cs.ClimateStation
+type ProvincialStations map[string]climateStations
+
+func ScrapeProvinces() ProvincialStations {
+	provinceStations := make(ProvincialStations)
+	for _, e := range provinces {
+		provinceStations[e] = scrape(e)
+	}
+
+	return provinceStations
+}
+
+func scrape(province string) climateStations {
+	climateData := make(climateStations)
 
 	c := colly.NewCollector(
 		colly.AllowedDomains(
@@ -42,6 +57,21 @@ func Scrape(province string) map[string]*cs.ClimateStation {
 		colly.MaxDepth(0),
 		colly.UserAgent("Mozilla/5.0"),
 	)
+
+	c.WithTransport(&http.Transport{
+		Proxy: http.ProxyFromEnvironment,
+		DialContext: (&net.Dialer{
+			Timeout:   30 * time.Second,
+			KeepAlive: 30 * time.Second,
+			DualStack: true,
+		}).DialContext,
+		ForceAttemptHTTP2:     true,
+		MaxIdleConns:          100,
+		IdleConnTimeout:       90 * time.Second,
+		TLSHandshakeTimeout:   10 * time.Second,
+		ExpectContinueTimeout: 1 * time.Second,
+		ResponseHeaderTimeout: 90 * time.Second,
+	})
 
 	c.OnHTML("a[href]", func(e *colly.HTMLElement) {
 		path := e.Attr("href")

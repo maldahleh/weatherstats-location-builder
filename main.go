@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	m := scraper.Scrape("ON")
+	m := scraper.ScrapeProvinces()
 	for k, v := range m {
 		fmt.Printf("key[%s] value[%s]\n", k, v)
 	}
