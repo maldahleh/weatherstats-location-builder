@@ -33,14 +33,14 @@ func handleRequests() {
 }
 
 func main() {
-	provinceData := scraper.ScrapeProvinces()
+	provinceData := scraper.Scrape()
 	resp, _ = json.Marshal(provinceData)
 
 	go func() {
 		for {
 			time.Sleep(time.Second * 1000)
 			mu.Lock()
-			provinceData = scraper.ScrapeProvinces()
+			provinceData = scraper.Scrape()
 			resp, _ = json.Marshal(provinceData)
 			mu.Unlock()
 		}

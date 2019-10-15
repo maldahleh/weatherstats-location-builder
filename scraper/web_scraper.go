@@ -36,7 +36,7 @@ var provinces = [...]string{
 type climateStations map[string]*cs.ClimateStation
 type ProvincialStations map[string]climateStations
 
-func ScrapeProvinces() ProvincialStations {
+func Scrape() ProvincialStations {
 	provinceStations := make(ProvincialStations)
 	for _, e := range provinces {
 		provinceStations[e] = scrape(e)
@@ -49,11 +49,6 @@ func scrape(province string) climateStations {
 	climateData := make(climateStations)
 
 	c := colly.NewCollector(
-		colly.AllowedDomains(
-			"dd.weatheroffice.ec.gc.ca",
-			"www.dd.weatheroffice.ec.gc.ca",
-		),
-		colly.AllowURLRevisit(),
 		colly.Async(true),
 		colly.MaxDepth(0),
 		colly.UserAgent("Mozilla/5.0"),
@@ -64,13 +59,12 @@ func scrape(province string) climateStations {
 		DialContext: (&net.Dialer{
 			Timeout:   30 * time.Second,
 			KeepAlive: 30 * time.Second,
-			DualStack: true,
 		}).DialContext,
 		MaxIdleConns:          100,
 		IdleConnTimeout:       90 * time.Second,
 		TLSHandshakeTimeout:   10 * time.Second,
 		ExpectContinueTimeout: 30 * time.Second,
-		ResponseHeaderTimeout: 90 * time.Second,
+		ResponseHeaderTimeout: 180 * time.Second,
 	})
 
 	c.OnHTML("a[href]", func(e *colly.HTMLElement) {
@@ -125,7 +119,7 @@ func scrape(province string) climateStations {
 	})
 
 	c.OnError(func(r *colly.Response, err error) {
-		log.Errorln("Request URL:", r.Request.URL, "failed with response:", r, "\nError:", err)
+		log.Errorln("Request URL:", r.Request.URL, "failed with response:", r.Request, "\nError:", err)
 	})
 
 	err := c.Visit(rootUrl + province + "/")
