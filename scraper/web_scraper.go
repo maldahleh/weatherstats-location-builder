@@ -1,12 +1,9 @@
 package scraper
 
 import (
-	"net"
-	"net/http"
 	"os"
 	"strings"
 	"time"
-
 	"weatherstatsLocations/downloader"
 	"weatherstatsLocations/reader"
 	cs "weatherstatsLocations/scraper/station"
@@ -49,23 +46,24 @@ func scrape(province string) climateStations {
 	climateData := make(climateStations)
 
 	c := colly.NewCollector(
-		colly.Async(true),
 		colly.MaxDepth(0),
 		colly.UserAgent("Mozilla/5.0"),
+		colly.IgnoreRobotsTxt(),
 	)
+	c.SetRequestTimeout(240 * time.Second)
 
-	c.WithTransport(&http.Transport{
-		Proxy: http.ProxyFromEnvironment,
-		DialContext: (&net.Dialer{
-			Timeout:   30 * time.Second,
-			KeepAlive: 30 * time.Second,
-		}).DialContext,
-		MaxIdleConns:          100,
-		IdleConnTimeout:       90 * time.Second,
-		TLSHandshakeTimeout:   10 * time.Second,
-		ExpectContinueTimeout: 30 * time.Second,
-		ResponseHeaderTimeout: 180 * time.Second,
-	})
+	//c.WithTransport(&http.Transport{
+	//	Proxy: http.ProxyFromEnvironment,
+	//	DialContext: (&net.Dialer{
+	//		Timeout:   30 * time.Second,
+	//		KeepAlive: 30 * time.Second,
+	//	}).DialContext,
+	//	MaxIdleConns:          100,
+	//	IdleConnTimeout:       90 * time.Second,
+	//	TLSHandshakeTimeout:   10 * time.Second,
+	//	ExpectContinueTimeout: 30 * time.Second,
+	//	ResponseHeaderTimeout: 180 * time.Second,
+	//})
 
 	c.OnHTML("a[href]", func(e *colly.HTMLElement) {
 		path := e.Attr("href")
@@ -119,7 +117,7 @@ func scrape(province string) climateStations {
 	})
 
 	c.OnError(func(r *colly.Response, err error) {
-		log.Errorln("Request URL:", r.Request.URL, "failed with response:", r.Request, "\nError:", err)
+		log.Errorln("Request URL:", r.Request.URL, "failed with response:", r.Body, "\nError:", err)
 	})
 
 	err := c.Visit(rootUrl + province + "/")
