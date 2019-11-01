@@ -14,7 +14,7 @@ import (
 )
 
 const rootUrl = "http://dd.weatheroffice.ec.gc.ca/climate/observations/daily/csv/"
-const timeoutMinutes = 15
+const timeoutMinutes = 20
 
 var provinces = [...]string{
 	"AB",
