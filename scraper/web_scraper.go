@@ -13,7 +13,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-const rootUrl string = "http://dd.weatheroffice.ec.gc.ca/climate/observations/daily/csv/"
+const rootUrl = "http://dd.weatheroffice.ec.gc.ca/climate/observations/daily/csv/"
+const timeoutMinutes = 15
 
 var provinces = [...]string{
 	"AB",
@@ -54,7 +55,7 @@ func scrape(province string) climateStations {
 		colly.IgnoreRobotsTxt(),
 	)
 
-	c.SetRequestTimeout(600 * time.Second)
+	c.SetRequestTimeout(timeoutMinutes * time.Minute)
 
 	c.OnHTML("a[href]", func(e *colly.HTMLElement) {
 		path := e.Attr("href")
@@ -82,7 +83,7 @@ func scrape(province string) climateStations {
 		if station == nil {
 			station = cs.NewClimateStation()
 
-			err := downloader.DownloadFile(path, rootUrl+province+"/"+path)
+			err := downloader.DownloadFile(path, url + path)
 			if err != nil {
 				station.Name = "N/A"
 			} else {
