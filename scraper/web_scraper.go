@@ -1,20 +1,19 @@
 package scraper
 
 import (
+	"net/http"
 	"os"
 	"strings"
-	"time"
 
 	"weatherstatsLocations/downloader"
 	"weatherstatsLocations/reader"
 	cs "weatherstatsLocations/scraper/station"
 
-	"github.com/gocolly/colly"
+	"github.com/PuerkitoBio/goquery"
 	log "github.com/sirupsen/logrus"
 )
 
 const rootUrl = "https://dd.weather.gc.ca/climate/observations/daily/csv/"
-const timeoutMinutes = 20
 
 var provinces = [...]string{
 	"AB",
@@ -48,17 +47,26 @@ func scrape(province string) climateStations {
 	url := rootUrl + province + "/"
 	climateData := make(climateStations)
 
-	c := colly.NewCollector(
-		colly.Async(true),
-		colly.MaxDepth(0),
-		colly.UserAgent("Mozilla/5.0"),
-		colly.IgnoreRobotsTxt(),
-	)
+	res, err := http.Get(url)
+	if err != nil {
+		log.Error("couldn't retrieve url", url, "error", err)
+		return climateData
+	}
 
-	c.SetRequestTimeout(timeoutMinutes * time.Minute)
+	defer res.Body.Close()
 
-	c.OnHTML("a[href]", func(e *colly.HTMLElement) {
-		path := e.Attr("href")
+	if res.StatusCode != 200 {
+		log.Error("status code error", res.StatusCode, res.Status)
+		return climateData
+	}
+
+	doc, err := goquery.NewDocumentFromReader(res.Body)
+	if err != nil {
+		log.Error("failed to load document", err)
+	}
+
+	doc.Find("a[href]").Each(func(i int, s *goquery.Selection) {
+		path, _ := s.Attr("href")
 		if !strings.Contains(path, ".csv") {
 			return
 		}
@@ -108,15 +116,5 @@ func scrape(province string) climateStations {
 		climateData[stationId] = station
 	})
 
-	c.OnError(func(r *colly.Response, err error) {
-		log.Errorln("Request URL:", r.Request.URL, "\nError:", err)
-	})
-
-	err := c.Visit(url)
-	if err != nil {
-		log.Errorln("Failed to visit:", url, "\nError:", err.Error())
-	}
-
-	c.Wait()
 	return climateData
 }
