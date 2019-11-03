@@ -13,7 +13,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-const rootUrl = "http://dd.weatheroffice.ec.gc.ca/climate/observations/daily/csv/"
+const rootUrl = "https://dd.weather.gc.ca/climate/observations/daily/csv/"
 const timeoutMinutes = 20
 
 var provinces = [...]string{
