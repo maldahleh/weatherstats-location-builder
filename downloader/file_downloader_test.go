@@ -28,6 +28,7 @@ func TestDownloadFileFailure(t *testing.T) {
 
 	err := DownloadFile(outPath, testUrl)
 	if err == nil {
+		utils.DeleteFile(outPath)
 		t.Fatalf("[TestDownloadFileFailure] file downloading did not fail when expected")
 	}
 
