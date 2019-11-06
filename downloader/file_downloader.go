@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-func DownloadFile(filepath string, url string) error {
+func DownloadFile(path string, url string) error {
 	resp, err := http.Get(url)
 	if err != nil {
 		return err
@@ -14,7 +14,7 @@ func DownloadFile(filepath string, url string) error {
 
 	defer resp.Body.Close()
 
-	out, err := os.Create(filepath)
+	out, err := os.Create(path)
 	if err != nil {
 		return err
 	}

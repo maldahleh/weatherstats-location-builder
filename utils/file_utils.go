@@ -6,15 +6,15 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func DeleteFile(filepath string) {
-	err := os.Remove(filepath)
+func DeleteFile(path string) {
+	err := os.Remove(path)
 	if err != nil {
-		log.Error("failed to delete file", filepath, "error", err)
+		log.Error("failed to delete file", path, "error", err)
 	}
 }
 
-func FileExists(filepath string) bool {
-	info, err := os.Stat(filepath)
+func FileExists(path string) bool {
+	info, err := os.Stat(path)
 	if os.IsNotExist(err) {
 		return false
 	}
