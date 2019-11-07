@@ -34,30 +34,51 @@ var provinces = [...]string{
 type climateStations map[string]*cs.ClimateStation
 type ProvincialStations map[string]climateStations
 
+type provincialChannelData struct {
+	province string
+	data     climateStations
+}
+
 func Scrape() ProvincialStations {
-	provinceStations := make(ProvincialStations)
+	channel := make(chan provincialChannelData)
 	for _, e := range provinces {
-		provinceStations[e] = scrape(e)
+		go scrape(e, channel)
+	}
+
+	provinceStations := make(ProvincialStations)
+	for i := 0; i < len(provinces); i++ {
+		data := <-channel
+		provinceStations[data.province] = data.data
 	}
 
 	return provinceStations
 }
 
-func scrape(province string) climateStations {
+func scrape(province string, channel chan provincialChannelData) {
 	url := rootUrl + province + "/"
 	climateData := make(climateStations)
 
 	res, err := http.Get(url)
 	if err != nil {
 		log.Error("couldn't retrieve url", url, "error", err)
-		return climateData
+		channel <- provincialChannelData{
+			province: province,
+			data:     climateData,
+		}
+
+		return
 	}
 
 	defer res.Body.Close()
 
 	if res.StatusCode != 200 {
 		log.Error("status code error", res.StatusCode, res.Status)
-		return climateData
+		channel <- provincialChannelData{
+			province: province,
+			data:     climateData,
+		}
+
+		return
 	}
 
 	doc, err := goquery.NewDocumentFromReader(res.Body)
@@ -91,7 +112,7 @@ func scrape(province string) climateStations {
 		if station == nil {
 			station = cs.NewClimateStation()
 
-			err := downloader.DownloadFile(path, url + path)
+			err := downloader.DownloadFile(path, url+path)
 			if err != nil {
 				station.Name = "N/A"
 			} else {
@@ -116,5 +137,8 @@ func scrape(province string) climateStations {
 		climateData[stationId] = station
 	})
 
-	return climateData
+	channel <- provincialChannelData{
+		province: province,
+		data:     climateData,
+	}
 }
