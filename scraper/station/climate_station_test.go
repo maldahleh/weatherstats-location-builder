@@ -12,14 +12,14 @@ func TestNewClimateStationName(t *testing.T) {
 func TestNewClimateStationDataNullCheck(t *testing.T) {
 	climateStation := NewClimateStation()
 	if climateStation.AvailableData == nil {
-		t.Fatalf("[TestNewClimateStationDataNullCheck] Climate Station Data: nil, expected: instaniated")
+		t.Fatal("[TestNewClimateStationDataNullCheck] Climate Station Data: nil, expected: instantiated")
 	}
 }
 
 func TestNewClimateStationDataLengthCheck(t *testing.T) {
 	climateStation := NewClimateStation()
 	if climateStation.AvailableData == nil {
-		t.Fatalf("[TestNewClimateStationDataLengthCheck] Climate Station Data: nil, expected: instaniated")
+		t.Fatal("[TestNewClimateStationDataLengthCheck] Climate Station Data: nil, expected: instantiated")
 	}
 
 	if len(climateStation.AvailableData) != 0 {
