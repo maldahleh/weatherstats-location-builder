@@ -27,9 +27,9 @@ func allStations(w http.ResponseWriter, r *http.Request) {
 
 func handleRequests() {
 	http.HandleFunc("/stations", allStations)
-	if err := http.ListenAndServe(":8080", nil); err != nil {
-		log.Fatal("Unable to start web server", err)
-	}
+
+	err := http.ListenAndServe(":8080", nil)
+	log.Fatal("Encountered error with web server", err)
 }
 
 func main() {
