@@ -2,7 +2,6 @@ package scraper
 
 import (
 	"net/http"
-	"os"
 	"strings"
 
 	"weatherstatsLocations/downloader"
@@ -10,6 +9,7 @@ import (
 	cs "weatherstatsLocations/scraper/station"
 
 	"github.com/PuerkitoBio/goquery"
+	utils "github.com/maldahleh/fileutils"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -117,11 +117,7 @@ func scrape(province string, channel chan provincialChannelData) {
 				station.Name = "N/A"
 			} else {
 				station.Name = reader.RetrieveStationName(path)
-
-				fileError := os.Remove(path)
-				if fileError != nil {
-					log.Errorln("Failed to delete:", path, "\nError:", fileError)
-				}
+				utils.DeleteFile(path)
 			}
 		}
 

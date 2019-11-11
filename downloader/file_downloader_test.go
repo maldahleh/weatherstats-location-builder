@@ -3,7 +3,7 @@ package downloader
 import (
 	"testing"
 
-	"weatherstatsLocations/utils"
+	utils "github.com/maldahleh/fileutils"
 )
 
 func TestDownloadFile(t *testing.T) {
